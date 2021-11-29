@@ -8,6 +8,7 @@ namespace agenda
 {
     class Evento : compromisso, IAjuda
     {
+        //testing
         private string local;
         private List<string> convidados;
 
