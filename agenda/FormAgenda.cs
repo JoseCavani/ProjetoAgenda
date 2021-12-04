@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Windows.Forms;
 
 // o //codigo contem varias partes comentados fora para fins de lembrança sobre maneiras differentes de resolver os problemas
@@ -9,6 +10,7 @@ namespace agenda
 {
     public enum EnumTipoLembrete
     {
+        Dias = 'd',
         Dia = 'D',
         Semana = 'S',
         Mês = 'M',
@@ -51,13 +53,14 @@ namespace agenda
             InitializeComponent();
             MessageBox.Show("Para cadstrar um novo compromisso clicar em novo, para editar algum compromisso ou notificação clicar duas vezes no compromisso");
 
-            var e1 = new Evento("Evento","E1", "evento 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0),  "local 2", new Notificacao(4, 'H', 'E'), "convidado 3");
+            var e1 = new Evento("E1", "evento 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0),  "local 2", new Notificacao(4, 'H', 'E'), "convidado 3");
             agenda.Add(e1);
-            var T1 = new Tarefa("Tarefa", "T1", "Tarefa 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0), 'M');
+            var T1 = new Tarefa( "T1", "Tarefa 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0), 'M');
             agenda.Add(T1);
-            var L1 = new Lembrete("Lembrete", "L1", "Lembrete 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0), 5,'A',new ValueTuple<bool, bool, bool, bool, bool, bool, bool>());
+            var L1 = new Lembrete( "L1", "Lembrete 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0), 5,'A',new ValueTuple<bool, bool, bool, bool, bool, bool, bool>());
             agenda.Add(L1);
-            SortAndShowComp(); 
+            Update(new Evento());
+            Update(new Tarefa());
             /*
             compromisso c2 = new compromisso();
             c2.Titulo = "C2";
@@ -148,87 +151,158 @@ namespace agenda
                  textBoxcompromisso.AppendText($"{Environment.NewLine}{n.Tempo}-{n.Unidade}-{n.Tipo}");
              }
             */
-            monthCalendarDataInicio.MaxSelectionCount = 1;
-            monthCalendarDataFim.MaxSelectionCount = 1;
             StartPosition = FormStartPosition.Manual;
             Location = new(0, 0);
 
         }
-        public void SortAndShowNoti()
-        {
 
-            dynamic aux = (dynamic)DataGridComp.CurrentRow.DataBoundItem;
-            DataGridNoti.DataSource = null;
-            DataGridNoti.Rows.Clear();
-            DataGridNoti.DataSource = aux.Notificacao;
-
-        }
-        public void SortAndShowComp()
+        public void Update(compromisso aux)
         {
             if (agenda.Count > 0)
             {
-               
-                agenda.Sort((x, y) => x.Datahorainicio.CompareTo(y.Datahorainicio));
-                DataGridComp.DataSource = null;
-                DataGridComp.Rows.Clear();
-                DataGridComp.DataSource = agenda;
+                if (aux is Evento)
+                {
+
+
+                    try
+                    {
+                        EventoDAO dao = new();
+
+                        //chama o método para buscar todos os dados da nossa camada model
+                        DataTable linhas = dao.SelectEventos(Program.providerName, Program.connectionStr);
+
+
+
+                        // seta o datasouce do dataGridView com os dados retornados
+                        DataGridEvento.Columns.Clear();
+                        DataGridEvento.AutoGenerateColumns = true;
+                        DataGridEvento.DataSource = linhas;
+                        DataGridEvento.Refresh();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
+
+
+                }
+                else if (aux is Tarefa)
+                {
+                    try
+                    {
+                        TarefaDAO dao = new();
+
+                        //chama o método para buscar todos os dados da nossa camada model
+                        DataTable linhas = dao.SelectTarefa(Program.providerName, Program.connectionStr);
+
+
+
+                        // seta o datasouce do dataGridView com os dados retornados
+                        dataGridTarefa.Columns.Clear();
+                        dataGridTarefa.AutoGenerateColumns = true;
+                        dataGridTarefa.DataSource = linhas;
+                        dataGridTarefa.Refresh();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
+                }
+                else if (aux is Lembrete)
+                {
+                }
             }
+        }
 
+     public void UpdateNoti(compromisso aux)
+        {
+            try
+            {
+                NotificacaoDAO dao = new();
+                aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
+                //chama o método para buscar todos os dados da nossa camada model
+                DataTable linhas = dao.SelectNotificacoes(Program.providerName, Program.connectionStr, aux.Id, 'E');
 
+                // seta o datasouce do dataGridView com os dados retornados
+                DataGridNoti.Columns.Clear();
+                DataGridNoti.AutoGenerateColumns = true;
+                DataGridNoti.DataSource = linhas;
+                DataGridNoti.Refresh();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
         private void ButtonNovoEvento_Click(object sender, EventArgs e)
         {
+            Opacity = .25;
             Evento aux = new();
-            FormCompromisso FormComp =  new FormCompromisso(aux,agenda, DataGridComp, monthCalendarDataInicio, monthCalendarDataFim);
+            aux.Titulo = null;
+            FormCompromisso FormComp =  new FormCompromisso(aux);
             FormComp.TarefaVisible(false);
             FormComp.LembreteVisible(false);
             FormComp.NotiVisible(false);
             FormComp.ShowDialog();
-            
-           
+            Update(aux);
+            Opacity = 1.00;
         }
         private void ButtonNovoTarefa_Click(object sender, EventArgs e)
         {
             Tarefa aux = new();
-            FormCompromisso FormComp = new FormCompromisso(aux,agenda, DataGridComp, monthCalendarDataInicio, monthCalendarDataFim);
+            aux.Titulo = null;
+            Opacity = .25;
+            FormCompromisso FormComp = new FormCompromisso(aux);
             FormComp.EventoVisible(false);
             FormComp.LembreteVisible(false);
             FormComp.NotiVisible(false);
             FormComp.ShowDialog();
+            Update(aux);
+            Opacity = 1.00;
         }
          private void buttonNovoLembrete_Click(object sender, EventArgs e)
         {
+
+            // to fix
             Lembrete aux = new();
-            FormCompromisso FormComp = new FormCompromisso(aux, agenda, DataGridComp, monthCalendarDataInicio, monthCalendarDataFim);
+            aux.Titulo = null;
+            FormCompromisso FormComp = new FormCompromisso(aux);
             FormComp.EventoVisible(false);
             FormComp.TarefaVisible(false);
             FormComp.NotiVisible(false);
             FormComp.ShowDialog();
+           // SortAndShowComp();
         }
-        private void DataGridComp_CellClick(object sender, DataGridViewCellEventArgs e)
+           private void DataGridEvento_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (DataGridComp.SelectedRows.Count != 0)
+            if (DataGridEvento.SelectedRows.Count != 0)
             {
+                Opacity = 0;
+                dynamic aux = new Evento(DataGridEvento.CurrentRow.Cells[1].Value.ToString(), DataGridEvento.CurrentRow.Cells[2].Value.ToString(), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[3].Value), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[4].Value), DataGridEvento.CurrentRow.Cells[5].Value.ToString(), null);
+                aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
 
-                dynamic aux = DataGridComp.CurrentRow.DataBoundItem;
-                monthCalendarDataInicio.SelectionStart = aux.Datahorainicio;
-                monthCalendarDataFim.SelectionEnd = aux.Datahorafim;
-                SortAndShowNoti();
-
-
+                //       MessageBox.Show($"{aux.GetType()}");
+                FormCompromisso FormComp = new FormCompromisso(aux);
+                FormComp.StartPosition = FormStartPosition.CenterScreen;
+                FormComp.TarefaVisible(false);
+                FormComp.LembreteVisible(false);
+                FormComp.ShowDialog();
+                Update(aux);
+                Opacity = 100;
             }
         }
 
-        private void DataGridComp_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+     /*  private void DataGridComp_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
 
             
-                if (DataGridComp.SelectedRows.Count != 0)
+                if (DataGridEvento.SelectedRows.Count != 0)
                 {
-                SortAndShowNoti();
-                dynamic aux = DataGridComp.CurrentRow.DataBoundItem;
-             //       MessageBox.Show($"{aux.GetType()}");
-                    FormCompromisso FormComp = new FormCompromisso(aux, agenda, DataGridComp, DataGridNoti);
+                dynamic aux = new Evento(DataGridEvento.CurrentRow.Cells[1].Value.ToString(), DataGridEvento.CurrentRow.Cells[2].Value.ToString(), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[3].Value), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[4].Value), DataGridEvento.CurrentRow.Cells[5].Value.ToString(), null);
+                aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
+
+                //       MessageBox.Show($"{aux.GetType()}");
+                FormCompromisso FormComp = new FormCompromisso(aux, agenda);
                 switch (aux)
                 {
 
@@ -248,28 +322,17 @@ namespace agenda
                 FormComp.ShowDialog();
                     DataGridNoti.DataSource = null;
                     DataGridNoti.Rows.Clear();                
+                 SortAndShow(aux);
             }
         }
-
+     */
         //unica maneira de fazer nao selecionar nada depois de invocar o sortandshowcomp metodo
-        private void DataGridComp_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
-        {
-
-            DataGridComp.ClearSelection();
-        }
-
+ 
         private void DataGridNoti_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
             DataGridNoti.ClearSelection();
         }
 
-        private void DataGridComp_MouseDown(object sender, MouseEventArgs e)
-        {
-            DataGridView.HitTestInfo hit = DataGridComp.HitTest(e.X, e.Y);
-            if (hit.Type != DataGridViewHitTestType.Cell)
-                DataGridComp.ClearSelection();
-                DataGridNoti.DataSource = null;
-        }
         private void DataGridNoti_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
 
@@ -277,13 +340,13 @@ namespace agenda
             {
                 if (e.Value != null)
                 {
-                    if (e.ColumnIndex == 1)
-                    {
-                        e.Value = (EnumUnidade)(char)e.Value;
-                    }
                     if (e.ColumnIndex == 2)
                     {
-                        e.Value = (EnumTipo)(char)e.Value;
+                        e.Value = (EnumUnidade)char.Parse(e.Value.ToString());
+                    }
+                    if (e.ColumnIndex == 3)
+                    {
+                        e.Value = (EnumTipo)char.Parse(e.Value.ToString());
                     }
                 }
             }
@@ -293,10 +356,63 @@ namespace agenda
         {
             Close();
         }
-    }
-     
 
-}
+        private void DataGridEvento_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            DataGridEvento.ClearSelection();
+        }
+
+        private void DataGridEvento_MouseDown(object sender, MouseEventArgs e)
+        {
+            DataGridView.HitTestInfo hit = DataGridEvento.HitTest(e.X, e.Y);
+            if (hit.Type != DataGridViewHitTestType.Cell)
+                DataGridEvento.ClearSelection();
+            DataGridNoti.DataSource = null;
+        }
+
+        private void dataGridTarefa_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+            if (dataGridTarefa.SelectedRows.Count != 0)
+            {
+                Opacity = 0;
+                dynamic aux = new Tarefa(dataGridTarefa.CurrentRow.Cells[1].Value.ToString(), dataGridTarefa.CurrentRow.Cells[2].Value.ToString(), Convert.ToDateTime(dataGridTarefa.CurrentRow.Cells[3].Value), Convert.ToDateTime(dataGridTarefa.CurrentRow.Cells[4].Value), char.Parse(dataGridTarefa.CurrentRow.Cells[5].Value.ToString()), null);
+                aux.Id = (int)dataGridTarefa.CurrentRow.Cells[0].Value;
+
+                //       MessageBox.Show($"{aux.GetType()}");
+                FormCompromisso FormComp = new FormCompromisso(aux);
+                FormComp.StartPosition = FormStartPosition.CenterScreen;
+                FormComp.EventoVisible(false);
+                FormComp.LembreteVisible(false);
+                FormComp.ShowDialog();
+                Update(aux);
+                Opacity = 100;
+            }
+        }
+
+        private void dataGridTarefa_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex != dataGridTarefa.NewRowIndex)
+            {
+                if (e.Value != null)
+                {
+                    if (e.ColumnIndex == 5)
+                    {
+                        e.Value = (EnumPrioridade)char.Parse(e.Value.ToString());
+                    }
+                }
+            }
+        }
+
+        private void DataGridEvento_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            Evento aux = new();
+
+            UpdateNoti(aux);
+        }
+    }
+
+    }
 
 
 

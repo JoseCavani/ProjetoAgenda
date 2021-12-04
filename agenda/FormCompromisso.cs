@@ -13,19 +13,18 @@ namespace agenda
 {
 
     public partial class FormCompromisso : Form
-    {
-        List<compromisso> agenda;
+    { 
         dynamic aux;
         public void NotiVisible(bool flag)
         {
             this.labelNotificação.Visible = flag;
-            this.labelNotificaçãoInstrução.Visible = flag;
-            this.listBoxNoti.Visible = flag;
-            this.labelNotificaçãoInstrução2.Visible = flag;
+            this.labelNotiId.Visible = flag;
+            this.textBoxIdNoti.Visible = flag;
+            this.dataGridViewNotificacoes.Visible = flag;
             this.labelNotificaçãoTempo.Visible = flag;
             this.TempoNotificacao.Visible = flag;
             this.label6.Visible = flag;
-            this.comboBoxTempo.Visible = flag;
+            this.comboBoxUnidade.Visible = flag;
             this.label7.Visible = flag;
             this.comboBoxTipo.Visible = flag;
             this.ButtonSalvarNoti.Visible = flag;
@@ -41,7 +40,7 @@ namespace agenda
         }
         public void EventoVisible(bool flag)
         {
-            this.listBoxConvidados.Visible = flag;
+            this.dataGridConvidado.Visible = flag;
             this.textBoxConvidado.Visible = flag;
             this.buttonEditarConvidados.Visible = flag;
             this.buttonExcluirConvidados.Visible = flag;
@@ -52,11 +51,21 @@ namespace agenda
 
 
         }
+        public void diasVisible(bool flag)
+        {
+            checkBoxDomingo.Visible = flag;
+            checkBoxSegunda.Visible = flag;
+            checkBoxTerca.Visible = flag;
+            checkBoxQuarta.Visible = flag;
+            checkBoxQuinta.Visible = flag;
+            checkBoxSexta.Visible = flag;
+            checkBoxSabado.Visible = flag;
+            labelRepitir.Visible = flag;
+        }
         public void LembreteVisible(bool flag)
         {
             this.labelLembretRepitir.Visible = flag;
             this.comboBoxTipoLembrete.Visible = flag;
-            this.numericUpDownTempoLembrete.Visible = flag;
             this.labelRepitir.Visible = flag;
             this.checkBoxDomingo.Visible = flag;
             this.checkBoxQuarta.Visible = flag;
@@ -69,81 +78,72 @@ namespace agenda
             this.checkBoxOcorrencias.Visible = flag;
             this.checkBoxNunca.Visible = flag;
             this.CheckBoxData.Visible = flag;
+            dateTimePickerLemb.Visible = flag;
+            labelTimeLembrete.Visible = flag;
+            numericUpDownOcorrenciasLembrete.Visible = flag;
+            dateTimePickerLembrete.Visible = flag;
         }
-        public FormCompromisso(dynamic aux, List<compromisso> agenda, DataGridView DataGridComp, MonthCalendar monthCalendarDataInicio, MonthCalendar monthCalendarDataFim)
+        public void UpdateNotificaçã()
         {
-            this.aux = aux;
-            this.DataGridComp = DataGridComp;
-            this.agenda = agenda;
-            InitializeComponent();
-            numericUpDownOcorrenciasLembrete.Visible = false;
-            dateTimePickerLembrete.Visible = false;
-            StartPosition = FormStartPosition.Manual;
-            Location = new(425, 110);
-            Boxdatainicio.Value = monthCalendarDataInicio.SelectionStart;
-            BoxDataFim.Text = monthCalendarDataFim.SelectionEnd.ToString();
-            ButtonEditarComp.Enabled = false;
-            ButtonExcluirComp.Enabled = false;
-            buttonEditarConvidados.Enabled = false;
-            buttonExcluirConvidados.Enabled = false;
-            buttonSalvarConvidados.Enabled = false;
-            if (aux is Tarefa)
+            try
             {
-                comboBoxPrioridade.DataSource = Enum.GetValues(typeof(EnumPrioridade));
-                comboBoxTempo.SelectedIndex = -1;
-            }
-            else if (aux is Lembrete)
-            {
-                checkBoxNunca.Checked = true;
-                var aux2 = (Lembrete)aux;
-                numericUpDownOcorrenciasLembrete.Visible = aux2.TempoPara == default ? false : true;
-                dateTimePickerLembrete.Visible = aux2.DatePara == default ? false : true;
-                CheckBoxData.Checked = aux2.TempoPara == default ? false : true;
-                checkBoxOcorrencias.Checked = aux2.DatePara == default ? false : true;
-                comboBoxTipoLembrete.DataSource = Enum.GetValues(typeof(EnumTipoLembrete));
-                comboBoxTipoLembrete.SelectedItem = -1;
-            }
+                NotificacaoDAO dao = new();
+                //chama o método para buscar todos os dados da nossa camada model
+                DataTable linhas = dao.SelectNotificacoes(Program.providerName, Program.connectionStr, aux.Id, 'E');
 
+                // seta o datasouce do dataGridView com os dados retornados
+                dataGridViewNotificacoes.Columns.Clear();
+                dataGridViewNotificacoes.AutoGenerateColumns = true;
+                dataGridViewNotificacoes.DataSource = linhas;
+                dataGridViewNotificacoes.Refresh();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
-        private DataGridView DataGridComp;
-        private DataGridView DataGridNoti;
-        public FormCompromisso(dynamic aux, List<compromisso> agenda, DataGridView DataGridComp, DataGridView DataGridNoti)
+        public FormCompromisso(dynamic aux)
         {
-            this.DataGridNoti = DataGridNoti;
-            this.DataGridComp = DataGridComp;
-            this.agenda = agenda;
             InitializeComponent();
-
-            numericUpDownOcorrenciasLembrete.Visible = false;
-            dateTimePickerLembrete.Visible = false;
-            StartPosition = FormStartPosition.Manual;
-            Location = new(425, 110);
             comboBoxTipo.DataSource = Enum.GetValues(typeof(EnumTipo));
             comboBoxTipo.SelectedIndex = -1;
 
-            comboBoxTempo.DataSource = Enum.GetValues(typeof(EnumUnidade));
-            comboBoxTempo.SelectedIndex = -1;
-
-            comboBoxPrioridade.DataSource = Enum.GetValues(typeof(EnumPrioridade));
-            comboBoxTempo.SelectedIndex = -1;
+            comboBoxUnidade.DataSource = Enum.GetValues(typeof(EnumUnidade));
+            comboBoxUnidade.SelectedIndex = -1;
 
 
-
-
-            textBoxTitulo.Text = aux.Titulo;
-            TextBoxDescricao.Text = aux.Descricao;
-            Boxdatainicio.Value = aux.Datahorainicio;
-            BoxDataFim.Text = aux.Datahorafim.ToString();
-            if (aux is Evento)
+            diasVisible(false);
+            //edit aux
+            if (aux.Titulo != null)
             {
+                textBoxTitulo.Text = aux.Titulo;
+                TextBoxDescricao.Text = aux.Descricao;
+                Boxdatainicio.Value = aux.Datahorainicio;
+                BoxDataFim.Text = aux.Datahorafim.ToString();
+                ButtonSalvarComp.Enabled = false;
+                ButtonEditarComp.Enabled = true;
+                ButtonExcluirComp.Enabled = true;
+            }
+            //new aux
+            else
+            {
+                ButtonSalvarComp.Enabled = true;
                 ButtonEditarComp.Enabled = false;
                 ButtonExcluirComp.Enabled = false;
-                listBoxConvidados.DataSource = aux.Convidados;
-                listBoxConvidados.SelectedIndex = -1;
-                textBoxLocal.Text = aux.Local;
             }
-            else if (aux is Tarefa)
+                if (aux is Evento)
+                {
+                    
+     
+                    textBoxLocal.Text = aux.Local;
+                }
+            
+
+            //both
+             if (aux is Tarefa)
             {
+                comboBoxPrioridade.DataSource = Enum.GetValues(typeof(EnumPrioridade));
+                comboBoxUnidade.SelectedIndex = -1;
                 comboBoxPrioridade.SelectedItem = (EnumPrioridade)aux.Propriedade;
             }
             else if (aux is Lembrete)
@@ -152,7 +152,6 @@ namespace agenda
                 comboBoxTipoLembrete.DataSource = Enum.GetValues(typeof(EnumTipoLembrete));
                 comboBoxTipoLembrete.SelectedItem = -1;
                 comboBoxTipoLembrete.SelectedItem = (EnumTipoLembrete)aux.TipoLembrete;
-                numericUpDownTempoLembrete.Value = aux.TempoLemebrete;
                 var aux2 = (Lembrete)aux;
                 numericUpDownOcorrenciasLembrete.Visible = aux2.TempoPara == default ? false : true;
                 dateTimePickerLembrete.Visible = aux2.DatePara == default ? false : true;
@@ -175,124 +174,135 @@ namespace agenda
                 checkBoxSabado.Checked = aux.DiaLembrete.Item7 == true ? true : false;
 
             }
-            ButtonSalvarComp.Enabled = false;
-            ButtonEditarComp.Enabled = true;
-            ButtonExcluirComp.Enabled = true;
-            listBoxNoti.DataSource = aux.Notificacao;
-            listBoxNoti.SelectedIndex = -1;
+
             this.aux = aux;
+
+            try
+            {
+                EventoDAO dao2 = new();
+                UpdateConvidado(dao2);
+
+                UpdateNotificaçã();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+
         }
 
 
 
         private void ButtonExcluirComp_Click(object sender, EventArgs e)
         {
-            agenda.Remove(aux);
-            DataGridComp.DataSource = null;
-            DataGridComp.Rows.Clear();
-            DataGridComp.DataSource = agenda;
-            MessageBox.Show(aux.GetType().Name + " excluido");
+            try
+            {
+                if (aux is Evento)
+                {
+                    // cria uma instancia da model
+                    EventoDAO eventoDAO = new();
+
+                    // chama o método da camada model para excluir
+                    eventoDAO.ExcluirEvento(Program.providerName, Program.connectionStr, aux);
+
+                    MessageBox.Show($"Dados excluidos com sucesso!", $"ID: {aux.Id}");
+                }
+                if (aux is Tarefa){
+                // cria uma instancia da model
+                TarefaDAO DAO = new();
+
+                // chama o método da camada model para excluir
+                DAO.ExcluirTarefa(Program.providerName, Program.connectionStr, aux);
+
+                MessageBox.Show($"Dados excluidos com sucesso!", $"ID: {aux.Id}");
+            }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        
             Close();
         }
-
-        public void UpdateConvidados()
+        
+       
+        private void UpdateConvidado(EventoDAO dao)
         {
-
-            //var aux2 = (Evento)aux.CreateInstance();
-            var aux2 = (Evento)aux;
-
-
-            aux2.Convidados.Sort((x, y) => (x).CompareTo(y));
-            listBoxConvidados.DataSource = null;
-            listBoxConvidados.Items.Clear();
-            listBoxConvidados.DataSource = aux.Convidados;
-        }
-        public void UpdateNotificaçã()
-        {
-
-            var aux2 = (compromisso)aux;
-            switch (aux)
+            try
             {
-                case Evento:
-                    aux2 = (Evento)aux;
-                    break;
-                case Tarefa:
-                    aux2 = (Tarefa)aux;
-                    break;
-                case Lembrete:
-                    aux2 = (Lembrete)aux;
-                    break;
+                //chama o método para buscar todos os dados da nossa camada model
+                DataTable linhas = dao.SelectConvidados(Program.providerName, Program.connectionStr, aux.Id);
+
+                // seta o datasouce do dataGridView com os dados retornados
+                dataGridConvidado.Columns.Clear();
+                dataGridConvidado.AutoGenerateColumns = true;
+                dataGridConvidado.DataSource = linhas;
+                dataGridConvidado.Refresh();
             }
-
-            aux2.Notificacao.Sort((x, y) => (x.Unidade).CompareTo(y.Unidade));
-            aux2.Notificacao.Sort((a, z) => (a.Tempo).CompareTo(z.Tempo));
-            listBoxNoti.DataSource = null;
-            listBoxNoti.Items.Clear();
-            listBoxNoti.DataSource = aux.Notificacao;
-            DataGridNoti.DataSource = null;
-            DataGridNoti.Rows.Clear();
-            DataGridNoti.DataSource = aux.Notificacao;
-        }
-
-        public void SortAndShowComp()
-        {
-            agenda.Sort((x, y) => x.Datahorainicio.CompareTo(y.Datahorainicio));
-            DataGridComp.DataSource = null;
-            DataGridComp.Rows.Clear();
-            DataGridComp.DataSource = agenda;
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
 
-        private void ButtonSalvarNoti_Click(object sender, EventArgs e)
+
+            private void ButtonSalvarNoti_Click(object sender, EventArgs e)
         {
-            aux.Notificacao.Add(new Notificacao((byte)TempoNotificacao.Value, (char)(EnumUnidade)Enum.Parse(typeof(EnumUnidade),
-           comboBoxTempo.Text), (char)(EnumTipo)Enum.Parse(typeof(EnumTipo), comboBoxTipo.Text)));
+            Notificacao auxNotificacao = new Notificacao((byte)TempoNotificacao.Value, (char)(EnumUnidade)Enum.Parse(typeof(EnumUnidade),
+           comboBoxUnidade.Text), (char)(EnumTipo)Enum.Parse(typeof(EnumTipo), comboBoxTipo.Text));
+            NotificacaoDAO dao = new();
+            dao.InserirNotificacao(Program.providerName, Program.connectionStr, auxNotificacao, aux.Id, 'E');
+            MessageBox.Show("Notificação cadastrada com sucesso!\nSe estiver tudo OK, feche a tela!");
             UpdateNotificaçã();
-            MessageBox.Show("notificação salva");
-        }
 
-        private void listBoxNoti_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (listBoxNoti.SelectedItem != null)
-            {
-                Notificacao auxn = (Notificacao)listBoxNoti.SelectedItem;
-                TempoNotificacao.Value = auxn.Tempo;
-                comboBoxTempo.SelectedItem = (EnumUnidade)auxn.Unidade;
-                comboBoxTipo.SelectedItem = (EnumTipo)auxn.Tipo;
-                ButtonSalvarNoti.Enabled = false;
-                ButtonEditarNoti.Enabled = true;
-                ButtonExcluirNoti.Enabled = true;
-            }
-            else
-            {
-                ButtonSalvarNoti.Enabled = true;
-                ButtonExcluirNoti.Enabled = false;
-                ButtonEditarNoti.Enabled = false;
-            }
         }
 
         private void ButtonEditarNoti_Click(object sender, EventArgs e)
         {
-            Notificacao auxn = (Notificacao)listBoxNoti.SelectedItem;
-            auxn.Tempo = (byte)TempoNotificacao.Value;
-            auxn.Unidade = (char)(EnumUnidade)Enum.Parse(typeof(EnumUnidade), comboBoxTempo.Text);
-            auxn.Tipo = (char)(EnumTipo)Enum.Parse(typeof(EnumTipo), comboBoxTipo.Text);
+            try
+            {
+                Notificacao auxNotificacao = new((byte)TempoNotificacao.Value, (char)(EnumUnidade)Enum.Parse(typeof(EnumUnidade), comboBoxUnidade.Text), (char)(EnumTipo)Enum.Parse(typeof(EnumTipo), comboBoxTipo.Text));
+                auxNotificacao.Id = Convert.ToInt32(textBoxIdNoti.Text);
+
+                // cria uma instancia da model
+                NotificacaoDAO dao = new();
+
+                // chama o método da camada model para inserir
+                dao.EditarNotificacao(Program.providerName, Program.connectionStr, auxNotificacao);
+
+                MessageBox.Show("Notificação editada com sucesso!\nSe estiver tudo OK, feche a tela!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
             UpdateNotificaçã();
-            MessageBox.Show("notificação atualizada");
         }
 
         private void ButtonExcluirNoti_Click(object sender, EventArgs e)
         {
-            Notificacao auxn = (Notificacao)listBoxNoti.SelectedItem;
-            aux.Notificacao.Remove(auxn);
-            SortAndShowComp(); //error if removed
-            UpdateNotificaçã();
-            MessageBox.Show("notificação excluida");
-        }
+            try
+            {
+                Notificacao auxNotificacao = new();
+                auxNotificacao.Id = Convert.ToInt32(textBoxIdNoti.Text);
 
-        private void listBoxNoti_DoubleClick(object sender, EventArgs e)
-        {
-            listBoxNoti.SelectedItem = null;
+                // cria uma instancia da model
+                NotificacaoDAO dao = new();
+
+                // chama o método da camada model para inserir
+                dao.ExcluirNotificacao(Program.providerName, Program.connectionStr, auxNotificacao);
+
+                MessageBox.Show("Notificação excluida com sucesso!\nSe estiver tudo OK, feche a tela!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+            UpdateNotificaçã();
         }
 
         private void ButtonFechar_Click(object sender, EventArgs e)
@@ -300,50 +310,43 @@ namespace agenda
             this.Close();
         }
 
-        private void listBoxConvidados_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (listBoxConvidados.SelectedItem != null)
-            {
-                textBoxConvidado.Text = listBoxConvidados.SelectedItem.ToString();
-                buttonSalvarConvidados.Enabled = false;
-                buttonEditarConvidados.Enabled = true;
-                buttonExcluirConvidados.Enabled = true;
-            }
-            else
-            {
-                buttonSalvarConvidados.Enabled = true;
-                buttonEditarConvidados.Enabled = false;
-                buttonExcluirConvidados.Enabled = false;
-            }
-        }
-
         private void buttonSalvarConvidados_Click(object sender, EventArgs e)
         {
-            aux.Convidados.Add(textBoxConvidado.Text);
-            UpdateConvidados();
+            EventoDAO eventoDAO = new();
+            //aux.Convidados.Add(textBoxConvidado.Text);
+            eventoDAO.InserirConvidado(Program.providerName, Program.connectionStr, aux.Id, textBoxConvidado.Text);
+            UpdateConvidado(eventoDAO);
             MessageBox.Show("convidado salvo");
+
+
         }
+
+        
+
 
         private void buttonEditarConvidados_Click(object sender, EventArgs e)
         {
-
-            aux.Convidados[listBoxConvidados.SelectedIndex] = textBoxConvidado.Text;
-            UpdateConvidados();
+            ValueTuple<String, int> auxConvidado = (textBoxConvidado.Text, Convert.ToInt32(dataGridConvidado.CurrentRow.Cells[0].Value));
+            EventoDAO eventoDAO = new();
+            //aux.Convidados.Add(textBoxConvidado.Text);
+            eventoDAO.EditarConvidado(Program.providerName, Program.connectionStr, auxConvidado.Item2, auxConvidado.Item1);
+            UpdateConvidado(eventoDAO);
             MessageBox.Show("convidado editado");
         }
 
+
+       
+
         private void buttonExcluirConvidados_Click(object sender, EventArgs e)
         {
-            aux.Convidados.RemoveAt(listBoxConvidados.SelectedIndex);
-            textBoxConvidado.Text = "";
+
+            EventoDAO eventoDAO = new();
+            //aux.Convidados.Add(textBoxConvidado.Text);
+            eventoDAO.ExcluirConvidado(Program.providerName, Program.connectionStr, Convert.ToInt32(dataGridConvidado.CurrentRow.Cells[0].Value));
+            UpdateConvidado(eventoDAO);
             MessageBox.Show("convidado excluida");
-            UpdateConvidados();
         }
 
-        private void listBoxConvidados_MouseDoubleClick(object sender, MouseEventArgs e)
-        {
-            listBoxConvidados.SelectedItem = null;
-        }
         ValueTuple<bool, bool, bool, bool, bool, bool, bool> auxDiasLembrete = (false, false, false, false, false, false, false);
         private void checkBoxDomingo_CheckedChanged(object sender, EventArgs e)
         {
@@ -390,41 +393,64 @@ namespace agenda
             {
                 if (aux is Evento)
                 {
-                    agenda.Add(new Evento("Evento", textBoxTitulo.Text, TextBoxDescricao.Text,
-                        Boxdatainicio.Value, DateTime.ParseExact(BoxDataFim.Text, "dd/MM/yyyy H:mm", CultureInfo.InvariantCulture), textBoxLocal.Text));
+                    aux = new Evento(textBoxTitulo.Text, TextBoxDescricao.Text,
+                        Boxdatainicio.Value, DateTime.ParseExact(BoxDataFim.Text, "dd/MM/yyyy H:mm", CultureInfo.InvariantCulture), textBoxLocal.Text);
+                    EventoDAO eventoDAO = new();
+
+                    // chama o método da camada model para inserir, e já captura o ID que foi gerado durante o insert
+                    int idGerado = eventoDAO.InserirEvento(Program.providerName, Program.connectionStr, aux);
+
+                    // alimenta no objeto o id gerado no banco de dados
+                    aux.Id = idGerado;
+
+                    MessageBox.Show($"Dados cadastrado com sucesso!", $"Evento ID: {idGerado}");
+                    buttonSalvarConvidados.Enabled = true;
                 }
 
                 else if (aux is Tarefa)
                 {
-                    agenda.Add(new Tarefa("Tarefa", textBoxTitulo.Text, TextBoxDescricao.Text,
+                    aux = new Tarefa(textBoxTitulo.Text, TextBoxDescricao.Text,
+                    Boxdatainicio.Value, DateTime.ParseExact(BoxDataFim.Text, "dd/MM/yyyy H:mm", CultureInfo.InvariantCulture),
+                    (char)(EnumPrioridade)Enum.Parse(typeof(EnumPrioridade), comboBoxPrioridade.Text));
+
+                    TarefaDAO tarefaDAO = new();
+
+                    // chama o método da camada model para inserir, e já captura o ID que foi gerado durante o insert
+                    int idGerado = tarefaDAO.InserirTarefa(Program.providerName, Program.connectionStr, aux);
+
+                    // alimenta no objeto o id gerado no banco de dados
+                    aux.Id = idGerado;
+
+                    MessageBox.Show($"Dados cadastrado com sucesso!", $"Evento ID: {idGerado}");
+
+
+                   // agenda.Add(new Tarefa(textBoxTitulo.Text, TextBoxDescricao.Text,
                     Boxdatainicio.Value, DateTime.ParseExact(BoxDataFim.Text, "dd/MM/yyyy H:mm", CultureInfo.InvariantCulture),
                     (char)(EnumPrioridade)Enum.Parse(typeof(EnumPrioridade), comboBoxPrioridade.Text)));
                 }
-                else if (aux is Lembrete)
+            /*    else if (aux is Lembrete)
                 {
                     var aux2 = (Lembrete)aux;
                     if (CheckBoxData.Checked == true)
                     {
                         aux2.DatePara = dateTimePickerLembrete.Value;
-                        agenda.Add(new Lembrete("Lembrete", textBoxTitulo.Text, TextBoxDescricao.Text,
+                        agenda.Add(new Lembrete( textBoxTitulo.Text, TextBoxDescricao.Text,
                            Boxdatainicio.Value, DateTime.ParseExact(BoxDataFim.Text, "dd/MM/yyyy H:mm", CultureInfo.InvariantCulture), (byte)numericUpDownTempoLembrete.Value,
                            (char)(EnumTipoLembrete)Enum.Parse(typeof(EnumTipoLembrete), comboBoxTipoLembrete.Text), auxDiasLembrete, aux2.DatePara));
                     }
                     else
                     {
                         aux2.TempoPara = (int)numericUpDownOcorrenciasLembrete.Value;
-                        agenda.Add(new Lembrete("Lembrete", textBoxTitulo.Text, TextBoxDescricao.Text,
+                        agenda.Add(new Lembrete( textBoxTitulo.Text, TextBoxDescricao.Text,
                               Boxdatainicio.Value, DateTime.ParseExact(BoxDataFim.Text, "dd/MM/yyyy H:mm", CultureInfo.InvariantCulture), (byte)numericUpDownTempoLembrete.Value,
                               (char)(EnumTipoLembrete)Enum.Parse(typeof(EnumTipoLembrete), comboBoxTipoLembrete.Text), auxDiasLembrete, default, aux2.TempoPara));
                     }
-                }
+                }*/
                 MessageBox.Show(aux.GetType().Name + " salvo");
-                agenda.Sort((x, y) => x.Datahorainicio.CompareTo(y.Datahorainicio));
-                DataGridComp.DataSource = null;
-                DataGridComp.Rows.Clear();
-                DataGridComp.DataSource = agenda;
+                NotiVisible(true);
 
             }
+
             catch (FormatException)
             {
                 MessageBox.Show("data incorreta ou campos vazios");
@@ -435,7 +461,7 @@ namespace agenda
             BoxDataFim.Text = "";
             textBoxConvidado.Text = "";
             comboBoxTipoLembrete.Text = "Ano";
-            numericUpDownTempoLembrete.Value = 0;
+            dateTimePickerLemb.Value = default;
             comboBoxPrioridade.Text = "Alta";
             foreach (Control cBox in this.Controls)
             {
@@ -448,21 +474,36 @@ namespace agenda
         }
         private void ButtonEditarComp_Click(object sender, EventArgs e)
         {
-            aux.Titulo = textBoxTitulo.Text;
+            try
+            {
+                aux.Titulo = textBoxTitulo.Text;
             aux.Descricao = TextBoxDescricao.Text;
             aux.Datahorainicio = Boxdatainicio.Value;
-            if (aux is Evento)
+            aux.Datahorafim = DateTime.ParseExact(BoxDataFim.Text, "dd/MM/yyyy H:mm", null);
+                if (aux is Evento)
             {
                 aux.Local = textBoxLocal.Text;
-            }
+
+                    // cria uma instancia da model
+                    EventoDAO eventoDAO = new();
+
+                    // chama o método da camada model para inserir, e já captura o ID que foi gerado durante o insert
+                    eventoDAO.EditarEvento(Program.providerName, Program.connectionStr, aux);
+
+                }
             else if (aux is Tarefa)
             {
                 aux.Propriedade = (char)(EnumPrioridade)Enum.Parse(typeof(EnumPrioridade), comboBoxPrioridade.SelectedItem.ToString());
-                comboBoxPrioridade.SelectedItem = (EnumPrioridade)aux.Propriedade;
-            }
-            else if (aux is Lembrete)
+                    // cria uma instancia da model
+                    TarefaDAO dao = new();
+
+                    // chama o método da camada model para inserir, e já captura o ID que foi gerado durante o insert
+                    dao.EditarTarefa(Program.providerName, Program.connectionStr, aux);
+                }
+                else if (aux is Lembrete)
             {
-                aux.TempoLemebrete = (byte)numericUpDownTempoLembrete.Value;
+                    //to fix
+                aux.TempoLemebrete = dateTimePickerLemb.Value;
                 aux.TipoLembrete = (char)(EnumTipoLembrete)Enum.Parse(typeof(EnumTipoLembrete), comboBoxTipoLembrete.Text);
                 aux.DiaLembrete = auxDiasLembrete;
                 aux.DatePara = CheckBoxData.Checked == true ? dateTimePickerLembrete.Value : default;
@@ -470,18 +511,14 @@ namespace agenda
 
 
             }
-
-            try
-            {
-                aux.Datahorafim = DateTime.ParseExact(BoxDataFim.Text, "dd/MM/yyyy H:mm", null);
                 MessageBox.Show(aux.GetType().Name + " atualizado");
-            }
-            catch (FormatException)
+
+                }
+            catch (Exception ex)
             {
-                MessageBox.Show("data incorreta ou campos vazio");
+                MessageBox.Show(ex.Message);
             }
 
-            SortAndShowComp();
         }
 
         private void CheckBoxData_CheckedChanged(object sender, EventArgs e)
@@ -536,5 +573,100 @@ namespace agenda
         {
             MessageBox.Show(aux.AjudaDeleta());
         }
+
+
+        private void dataGridViewNotificacoes_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dataGridViewNotificacoes.SelectedRows.Count > 0)
+            {
+              
+                    textBoxIdNoti.Text = dataGridViewNotificacoes.CurrentRow.Cells[0].Value.ToString();
+                TempoNotificacao.Value = Convert.ToDecimal(dataGridViewNotificacoes.CurrentRow.Cells[1].Value);
+                comboBoxUnidade.SelectedItem = (EnumUnidade)Convert.ToChar(dataGridViewNotificacoes.CurrentRow.Cells[2].Value);
+                comboBoxTipo.SelectedItem = (EnumTipo)Convert.ToChar(dataGridViewNotificacoes.CurrentRow.Cells[3].Value);
+
+                ButtonSalvarNoti.Enabled = false;
+                ButtonEditarNoti.Enabled = true;
+                ButtonExcluirNoti.Enabled = true;
+            
+                }
+                else
+                {
+                    textBoxIdNoti.Clear();
+                    TempoNotificacao.Value = 0;
+                    comboBoxUnidade.SelectedIndex = -1;
+                    comboBoxTipo.SelectedIndex = -1;
+
+                    ButtonSalvarNoti.Enabled = true;
+                    ButtonExcluirNoti.Enabled = false;
+                    ButtonEditarNoti.Enabled = false;
+                
+            }
+        }
+
+        private void dataGridConvidado_SelectionChanged(object sender, EventArgs e)
+        {
+            if (dataGridConvidado.SelectedRows.Count > 0)
+            {
+              
+                    textBoxConvidado.Text = dataGridConvidado.CurrentRow.Cells[1].Value.ToString();
+                 
+                    buttonSalvarConvidados.Enabled = false;
+                    buttonEditarConvidados.Enabled = true;
+                    buttonExcluirConvidados.Enabled = true;
+                
+            }
+            else
+            {
+                textBoxConvidado.Text = "";
+
+                buttonSalvarConvidados.Enabled = true;
+                buttonEditarConvidados.Enabled = false;
+                buttonExcluirConvidados.Enabled = false;
+
+            }
+        }
+
+        private void dataGridConvidado_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            dataGridConvidado.ClearSelection();
+        }
+
+        private void dataGridConvidado_MouseDown(object sender, MouseEventArgs e)
+        {
+            DataGridView.HitTestInfo hit = dataGridConvidado.HitTest(e.X, e.Y);
+            if (hit.Type != DataGridViewHitTestType.Cell)
+                dataGridConvidado.ClearSelection();
+            dataGridConvidado.DataSource = null;
+        }
+
+        private void dataGridViewNotificacoes_MouseDown(object sender, MouseEventArgs e)
+        {
+            DataGridView.HitTestInfo hit = dataGridViewNotificacoes.HitTest(e.X, e.Y);
+            if (hit.Type != DataGridViewHitTestType.Cell)
+                dataGridViewNotificacoes.ClearSelection();
+            dataGridViewNotificacoes.DataSource = null;
+            UpdateNotificaçã();
+        }
+
+        private void dataGridViewNotificacoes_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            dataGridViewNotificacoes.ClearSelection();
+        }
+
+        private void dataGridConvidado_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            dataGridConvidado.ClearSelection();
+        }
+
+        private void comboBoxTipoLembrete_TextChanged(object sender, EventArgs e)
+        {
+            if (comboBoxTipoLembrete.Text == "Dias")
+            {
+                diasVisible(true);
+            }
+        }
     }
-}
+    }
+    
+    

@@ -8,21 +8,19 @@ namespace agenda
 {
     class Evento : compromisso, IAjuda
     {
-        //testing
         private string local;
         private List<string> convidados;
 
         internal string Local { get => local; set => local = value; }
         internal List<string> Convidados { get => convidados; set => convidados = value; }
         public Evento(
-             string tipo = default,
            string titulo = default,
            string descricao = default,
            DateTime datahorainicio = default,
            DateTime datahorafim = default,
            string local = default,
            Notificacao notificacao = default,
-           string convidados = default) : base(tipo,titulo, descricao, datahorainicio, datahorafim, notificacao)
+           string convidados = default) : base(titulo, descricao, datahorainicio, datahorafim, notificacao)
         {
 
 
