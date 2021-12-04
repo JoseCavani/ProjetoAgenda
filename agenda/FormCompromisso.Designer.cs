@@ -708,6 +708,7 @@ namespace agenda
             this.dataGridViewNotificacoes.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridViewNotificacoes.Size = new System.Drawing.Size(315, 192);
             this.dataGridViewNotificacoes.TabIndex = 88;
+            this.dataGridViewNotificacoes.CellFormatting += new System.Windows.Forms.DataGridViewCellFormattingEventHandler(this.dataGridViewNotificacoes_CellFormatting);
             this.dataGridViewNotificacoes.DataBindingComplete += new System.Windows.Forms.DataGridViewBindingCompleteEventHandler(this.dataGridViewNotificacoes_DataBindingComplete);
             this.dataGridViewNotificacoes.SelectionChanged += new System.EventHandler(this.dataGridViewNotificacoes_SelectionChanged);
             this.dataGridViewNotificacoes.MouseDown += new System.Windows.Forms.MouseEventHandler(this.dataGridViewNotificacoes_MouseDown);

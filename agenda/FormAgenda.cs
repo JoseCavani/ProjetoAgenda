@@ -57,7 +57,7 @@ namespace agenda
             agenda.Add(e1);
             var T1 = new Tarefa( "T1", "Tarefa 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0), 'M');
             agenda.Add(T1);
-            var L1 = new Lembrete( "L1", "Lembrete 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0), 5,'A',new ValueTuple<bool, bool, bool, bool, bool, bool, bool>());
+            var L1 = new Lembrete( "L1", "Lembrete 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0), new DateTime(2021, 10, 20, 23, 30, 0), 'A',new ValueTuple<bool, bool, bool, bool, bool, bool, bool>());
             agenda.Add(L1);
             Update(new Evento());
             Update(new Tarefa());
@@ -221,7 +221,7 @@ namespace agenda
                 NotificacaoDAO dao = new();
                 aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
                 //chama o método para buscar todos os dados da nossa camada model
-                DataTable linhas = dao.SelectNotificacoes(Program.providerName, Program.connectionStr, aux.Id, 'E');
+                DataTable linhas = dao.SelectNotificacoes(Program.providerName, Program.connectionStr, aux.Id);
 
                 // seta o datasouce do dataGridView com os dados retornados
                 DataGridNoti.Columns.Clear();
