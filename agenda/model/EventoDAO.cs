@@ -151,11 +151,9 @@ namespace agenda
             } //using faz o conexao.Close() automático quando fecha o seu escopo
         }
 
-
+         int id_do_evento_retornar;
         public int InserirEvento(string provider, string stringConexao, Evento evento)
         {
-
-
             factory = DbProviderFactories.GetFactory(provider);
 
             using (var conexao = factory.CreateConnection()) //Cria conexão
@@ -182,14 +180,31 @@ namespace agenda
                     string auxSQL_ID = provider.Contains("MySql") ? "SELECT LAST_INSERT_ID();" : "SELECT SCOPE_IDENTITY();";
 
                     //monta os comandos INSERT e captura do ID gerado pelo banco de dados
-                    comando.CommandText = @"INSERT INTO tb_evento (titulo, descricao, dataHoraInicio, dataHoraFim, local) VALUES (@titulo,@descricao,@dataHoraInicio,@dataHoraFim, @local); " + auxSQL_ID;
+                     comando.CommandText = @"INSERT INTO compromisso (titulo, descricao, dataHoraInicio, dataHoraFim) VALUES (@titulo,@descricao,@dataHoraInicio,@dataHoraFim); " + auxSQL_ID;
+                    var id_do_compromisso = System.Convert.ToInt32(comando.ExecuteScalar());
+                    var compromisso_id = comando.CreateParameter(); compromisso_id.ParameterName = "@compromisso_id"; compromisso_id.Value = id_do_compromisso; comando.Parameters.Add(compromisso_id);
+                    comando.CommandText = @"INSERT INTO tb_evento (compromisso_id, local) VALUES (@compromisso_id, @local ); " + auxSQL_ID;
+
 
                     //executa o comando no banco de dados e retorna o ID gerado 
-                    return System.Convert.ToInt32(comando.ExecuteScalar());
+                 var id_do_evento =  System.Convert.ToInt32(comando.ExecuteScalar());
+                    id_do_evento_retornar = id_do_evento;
+                    return (id_do_compromisso);
 
                 }
             } //using faz o conexao.Close() automático quando fecha o seu escopo
         }
+
+
+
+        public int GetId()
+        {
+            return id_do_evento_retornar;
+        }
+
+
+
+
         public DataTable SelectEventos(string provider, string stringConexao)
         {
             factory = DbProviderFactories.GetFactory(provider);
@@ -207,8 +222,8 @@ namespace agenda
 
                     //verifica se tem filtro
 
-                    comando.CommandText = @"SELECT id_evento AS ID, titulo AS Titulo, descricao AS Descrição, dataHoraInicio AS Inicio, dataHoraFim AS Fim, local AS Local " +
-                                            "FROM tb_evento;";
+                    comando.CommandText = @"SELECT B.id_evento AS Evento, B.compromisso_id AS Compromisso, titulo AS Titulo, descricao AS Descrição, dataHoraInicio AS Inicio, dataHoraFim AS Fim, B.local AS local FROM compromisso A
+                                            Inner join tb_evento B on B.compromisso_id=A.id;";
 
                     //Executa o script na conexão e retorna as linhas afetadas.
                     var sdr = comando.ExecuteReader();
@@ -269,10 +284,18 @@ namespace agenda
                     comando.Parameters.Add(id);
 
 
+                    var Compromisso_id = comando.CreateParameter();
+                    Compromisso_id.ParameterName = "@Compromisso_id";
+                    Compromisso_id.Value = evento.Compromisso_id;
+                    comando.Parameters.Add(Compromisso_id);
+
                     //monta os comandos UPDATE
                     comando.CommandText = @"" +
-                    "UPDATE tb_evento SET titulo = @titulo, descricao = @descricao, dataHoraInicio = @dataHoraInicio, dataHoraFim = @dataHoraFim, local = @local " +
-                    "WHERE id_evento = @id;";
+                     "UPDATE compromisso SET titulo = @titulo, descricao = @descricao, dataHoraInicio = @dataHoraInicio, dataHoraFim = @dataHoraFim " +
+                  "WHERE id = @Compromisso_id;" +
+                  "UPDATE tb_evento SET local = @local " +
+                  "WHERE id_evento = @id;";
+              
 
                     //executa o comando no banco de dados
                     comando.ExecuteNonQuery();
@@ -302,11 +325,17 @@ namespace agenda
                     id.Value = evento.Id;
                     comando.Parameters.Add(id);
 
+                    var Compromisso_id = comando.CreateParameter();
+                    Compromisso_id.ParameterName = "@Compromisso_id";
+                    Compromisso_id.Value = evento.Compromisso_id;
+                    comando.Parameters.Add(Compromisso_id);
+
 
                     //monta os comandos UPDATE
                     comando.CommandText = @"DELETE FROM tb_convidado WHERE id_evento = @id; " +
-                                           "DELETE FROM tb_notificacao WHERE id_compromisso = @id AND tipo_compromisso = 'E';" +
-                                           "DELETE FROM tb_evento WHERE id_evento = @id;";
+                                           "DELETE FROM tb_evento WHERE id_evento = @id;" +
+                                           "DELETE FROM tb_notificacao WHERE Compromisso_id = @Compromisso_id ;" +
+                                            "DELETE FROM compromisso WHERE id = @Compromisso_id;";
 
                     //executa o comando no banco de dados
                     comando.ExecuteNonQuery();
