@@ -8,8 +8,12 @@ namespace agenda
 {
     class Tarefa : compromisso, IAjuda
     {
+        private int id;
         private char propriedade;
+        private int compromisso_id;
+        internal int Id { get => id; set => id = value; }
         internal char Propriedade { get => propriedade; set => propriedade = value; }
+        internal int Compromisso_id { get => compromisso_id; set => compromisso_id = value; }
 
         public Tarefa(
             string titulo = default,

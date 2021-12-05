@@ -8,10 +8,14 @@ namespace agenda
 {
     class Evento : compromisso, IAjuda
     {
+        private int id;
         private string local;
         private List<string> convidados;
+        private int compromisso_id;
 
+        internal int Id { get => id; set => id = value; }
         internal string Local { get => local; set => local = value; }
+        internal int Compromisso_id { get => compromisso_id; set => compromisso_id = value; }
         internal List<string> Convidados { get => convidados; set => convidados = value; }
         public Evento(
            string titulo = default,

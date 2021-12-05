@@ -11,12 +11,12 @@ namespace agenda
         public string AjudaDeleta();
     }
 
-    public abstract class compromisso
+    public class compromisso
     {
-        protected int id;
-        protected string titulo, descricao;
-        protected DateTime datahorainicio, datahorafim;
-        protected List<Notificacao> notificacao;
+        private int id;
+        private string titulo, descricao;
+        private DateTime datahorainicio, datahorafim;
+        private List<Notificacao> notificacao;
 
         public int Id { get => id; set => id = value; }
         public string Titulo { get => titulo; set => titulo = value; }

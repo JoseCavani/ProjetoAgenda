@@ -51,16 +51,10 @@ namespace agenda
 
             this.agenda = agenda;
             InitializeComponent();
-            MessageBox.Show("Para cadstrar um novo compromisso clicar em novo, para editar algum compromisso ou notificação clicar duas vezes no compromisso");
-
-            var e1 = new Evento("E1", "evento 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0),  "local 2", new Notificacao(4, 'H', 'E'), "convidado 3");
-            agenda.Add(e1);
-            var T1 = new Tarefa( "T1", "Tarefa 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0), 'M');
-            agenda.Add(T1);
-            var L1 = new Lembrete( "L1", "Lembrete 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0), new DateTime(2021, 10, 20, 23, 30, 0), 'A',new ValueTuple<bool, bool, bool, bool, bool, bool, bool>());
-            agenda.Add(L1);
+            
             Update(new Evento());
             Update(new Tarefa());
+            Update(new Lembrete());
             /*
             compromisso c2 = new compromisso();
             c2.Titulo = "C2";
@@ -154,72 +148,110 @@ namespace agenda
             StartPosition = FormStartPosition.Manual;
             Location = new(0, 0);
 
+
         }
 
         public void Update(compromisso aux)
         {
-            if (agenda.Count > 0)
+
+            if (aux is Evento)
             {
-                if (aux is Evento)
+
+
+                try
                 {
+                    EventoDAO dao = new();
 
-
-                    try
-                    {
-                        EventoDAO dao = new();
-
-                        //chama o método para buscar todos os dados da nossa camada model
-                        DataTable linhas = dao.SelectEventos(Program.providerName, Program.connectionStr);
+                    //chama o método para buscar todos os dados da nossa camada model
+                    DataTable linhas = dao.SelectEventos(Program.providerName, Program.connectionStr);
 
 
 
-                        // seta o datasouce do dataGridView com os dados retornados
-                        DataGridEvento.Columns.Clear();
-                        DataGridEvento.AutoGenerateColumns = true;
-                        DataGridEvento.DataSource = linhas;
-                        DataGridEvento.Refresh();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message);
-                    }
+                    // seta o datasouce do dataGridView com os dados retornados
+                    DataGridEvento.Columns.Clear();
+                    DataGridEvento.AutoGenerateColumns = true;
+                    DataGridEvento.DataSource = linhas;
+                    DataGridEvento.Columns[1].Visible = false;
+                    DataGridEvento.Columns[0].Visible = false;
+                    DataGridEvento.Refresh();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
 
+
+            }
+            else if (aux is Tarefa)
+            {
+                try
+                {
+                    TarefaDAO dao = new();
+
+                    //chama o método para buscar todos os dados da nossa camada model
+                    DataTable linhas = dao.SelectTarefa(Program.providerName, Program.connectionStr);
+
+
+
+                    // seta o datasouce do dataGridView com os dados retornados
+                    dataGridTarefa.Columns.Clear();
+                    dataGridTarefa.AutoGenerateColumns = true;
+                    dataGridTarefa.DataSource = linhas;
+                    dataGridTarefa.Columns[1].Visible = false;
+                    dataGridTarefa.Columns[0].Visible = false;
+                    dataGridTarefa.Refresh();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+            else if (aux is Lembrete)
+            {
+                try
+                {
+                    Lembrete aux2 = (Lembrete)aux;
+                    LembreteDAO dao = new();
+
+                    //chama o método para buscar todos os dados da nossa camada model
+                    DataTable linhas = dao.SelectLembrete(Program.providerName, Program.connectionStr);
+
+
+
+                    // seta o datasouce do dataGridView com os dados retornados
+                    dataGridLembrete.Columns.Clear();
+                    dataGridLembrete.AutoGenerateColumns = true;
+                    dataGridLembrete.DataSource = linhas;
+                    dataGridLembrete.Columns[1].Visible = false;
+                    dataGridLembrete.Columns[0].Visible = false;
+                    dataGridLembrete.Refresh();
 
                 }
-                else if (aux is Tarefa)
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        TarefaDAO dao = new();
-
-                        //chama o método para buscar todos os dados da nossa camada model
-                        DataTable linhas = dao.SelectTarefa(Program.providerName, Program.connectionStr);
-
-
-
-                        // seta o datasouce do dataGridView com os dados retornados
-                        dataGridTarefa.Columns.Clear();
-                        dataGridTarefa.AutoGenerateColumns = true;
-                        dataGridTarefa.DataSource = linhas;
-                        dataGridTarefa.Refresh();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message);
-                    }
-                }
-                else if (aux is Lembrete)
-                {
+                    MessageBox.Show(ex.Message);
                 }
             }
         }
 
-     public void UpdateNoti(compromisso aux)
+
+        public void UpdateNoti(compromisso aux)
         {
             try
             {
                 NotificacaoDAO dao = new();
-                aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
+                if (aux is Evento)
+                {
+                    aux.Id = (int)DataGridEvento.CurrentRow.Cells[1].Value;
+                }
+                else if (aux is Tarefa)
+                {
+                    aux.Id = (int)dataGridTarefa.CurrentRow.Cells[1].Value;
+                }
+                else
+                {
+                    aux.Id = (int)dataGridLembrete.CurrentRow.Cells[1].Value;
+                }
                 //chama o método para buscar todos os dados da nossa camada model
                 DataTable linhas = dao.SelectNotificacoes(Program.providerName, Program.connectionStr, aux.Id);
 
@@ -239,7 +271,7 @@ namespace agenda
             Opacity = .25;
             Evento aux = new();
             aux.Titulo = null;
-            FormCompromisso FormComp =  new FormCompromisso(aux);
+            FormCompromisso FormComp = new FormCompromisso(aux);
             FormComp.TarefaVisible(false);
             FormComp.LembreteVisible(false);
             FormComp.NotiVisible(false);
@@ -260,74 +292,59 @@ namespace agenda
             Update(aux);
             Opacity = 1.00;
         }
-         private void buttonNovoLembrete_Click(object sender, EventArgs e)
+        private void buttonNovoLembrete_Click(object sender, EventArgs e)
         {
 
-            // to fix
+
             Lembrete aux = new();
             aux.Titulo = null;
+            Opacity = .25;
             FormCompromisso FormComp = new FormCompromisso(aux);
             FormComp.EventoVisible(false);
             FormComp.TarefaVisible(false);
             FormComp.NotiVisible(false);
             FormComp.ShowDialog();
-           // SortAndShowComp();
-        }
-           private void DataGridEvento_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (DataGridEvento.SelectedRows.Count != 0)
-            {
-                Opacity = 0;
-                dynamic aux = new Evento(DataGridEvento.CurrentRow.Cells[1].Value.ToString(), DataGridEvento.CurrentRow.Cells[2].Value.ToString(), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[3].Value), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[4].Value), DataGridEvento.CurrentRow.Cells[5].Value.ToString(), null);
-                aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
-
-                //       MessageBox.Show($"{aux.GetType()}");
-                FormCompromisso FormComp = new FormCompromisso(aux);
-                FormComp.StartPosition = FormStartPosition.CenterScreen;
-                FormComp.TarefaVisible(false);
-                FormComp.LembreteVisible(false);
-                FormComp.ShowDialog();
-                Update(aux);
-                Opacity = 100;
-            }
+            Update(aux);
+            Opacity = 1.00;
         }
 
-     /*  private void DataGridComp_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
 
-            
-                if (DataGridEvento.SelectedRows.Count != 0)
-                {
-                dynamic aux = new Evento(DataGridEvento.CurrentRow.Cells[1].Value.ToString(), DataGridEvento.CurrentRow.Cells[2].Value.ToString(), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[3].Value), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[4].Value), DataGridEvento.CurrentRow.Cells[5].Value.ToString(), null);
-                aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
+        /*  private void DataGridComp_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+           {
 
-                //       MessageBox.Show($"{aux.GetType()}");
-                FormCompromisso FormComp = new FormCompromisso(aux, agenda);
-                switch (aux)
-                {
 
-                    case Evento:
-                        FormComp.TarefaVisible(false);
-                        FormComp.LembreteVisible(false);
-                        break;
-                    case Tarefa:
-                        FormComp.EventoVisible(false);
-                        FormComp.LembreteVisible(false);
-                        break;
-                    case Lembrete:
-                        FormComp.EventoVisible(false);
-                        FormComp.TarefaVisible(false);
-                        break;
-                }
-                FormComp.ShowDialog();
-                    DataGridNoti.DataSource = null;
-                    DataGridNoti.Rows.Clear();                
-                 SortAndShow(aux);
-            }
-        }
-     */
+                   if (DataGridEvento.SelectedRows.Count != 0)
+                   {
+                   dynamic aux = new Evento(DataGridEvento.CurrentRow.Cells[1].Value.ToString(), DataGridEvento.CurrentRow.Cells[2].Value.ToString(), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[3].Value), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[4].Value), DataGridEvento.CurrentRow.Cells[5].Value.ToString(), null);
+                   aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
+
+                   //       MessageBox.Show($"{aux.GetType()}");
+                   FormCompromisso FormComp = new FormCompromisso(aux, agenda);
+                   switch (aux)
+                   {
+
+                       case Evento:
+                           FormComp.TarefaVisible(false);
+                           FormComp.LembreteVisible(false);
+                           break;
+                       case Tarefa:
+                           FormComp.EventoVisible(false);
+                           FormComp.LembreteVisible(false);
+                           break;
+                       case Lembrete:
+                           FormComp.EventoVisible(false);
+                           FormComp.TarefaVisible(false);
+                           break;
+                   }
+                   FormComp.ShowDialog();
+                       DataGridNoti.DataSource = null;
+                       DataGridNoti.Rows.Clear();                
+                    SortAndShow(aux);
+               }
+           }
+        */
         //unica maneira de fazer nao selecionar nada depois de invocar o sortandshowcomp metodo
- 
+
         private void DataGridNoti_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
         {
             DataGridNoti.ClearSelection();
@@ -376,8 +393,9 @@ namespace agenda
             if (dataGridTarefa.SelectedRows.Count != 0)
             {
                 Opacity = 0;
-                dynamic aux = new Tarefa(dataGridTarefa.CurrentRow.Cells[1].Value.ToString(), dataGridTarefa.CurrentRow.Cells[2].Value.ToString(), Convert.ToDateTime(dataGridTarefa.CurrentRow.Cells[3].Value), Convert.ToDateTime(dataGridTarefa.CurrentRow.Cells[4].Value), char.Parse(dataGridTarefa.CurrentRow.Cells[5].Value.ToString()), null);
+                dynamic aux = new Tarefa(dataGridTarefa.CurrentRow.Cells[2].Value.ToString(), dataGridTarefa.CurrentRow.Cells[3].Value.ToString(), Convert.ToDateTime(dataGridTarefa.CurrentRow.Cells[4].Value), Convert.ToDateTime(dataGridTarefa.CurrentRow.Cells[5].Value), char.Parse(dataGridTarefa.CurrentRow.Cells[6].Value.ToString()), null);
                 aux.Id = (int)dataGridTarefa.CurrentRow.Cells[0].Value;
+                aux.Compromisso_id = (int)dataGridTarefa.CurrentRow.Cells[1].Value;
 
                 //       MessageBox.Show($"{aux.GetType()}");
                 FormCompromisso FormComp = new FormCompromisso(aux);
@@ -390,13 +408,67 @@ namespace agenda
             }
         }
 
+
+
+        private void dataGridLembrete_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dataGridLembrete.SelectedRows.Count != 0)
+            {
+
+                ValueTuple<bool, bool, bool, bool, bool, bool, bool> diaLembrete = (false, false, false, false, false, false, false);
+                Opacity = 0;
+                Lembrete aux = new Lembrete(dataGridLembrete.CurrentRow.Cells[2].Value.ToString(), dataGridLembrete.CurrentRow.Cells[3].Value.ToString(), Convert.ToDateTime(dataGridLembrete.CurrentRow.Cells[4].Value), Convert.ToDateTime(dataGridLembrete.CurrentRow.Cells[5].Value), Convert.ToDateTime(dataGridLembrete.CurrentRow.Cells[6].Value), char.Parse(dataGridLembrete.CurrentRow.Cells[7].Value.ToString()));
+                aux.Id = (int)dataGridLembrete.CurrentRow.Cells[0].Value;
+                aux.Compromisso_id = (int)dataGridLembrete.CurrentRow.Cells[1].Value;
+                diaLembrete.Item1 = (bool)dataGridLembrete.CurrentRow.Cells[8].Value;
+                diaLembrete.Item2 = (bool)dataGridLembrete.CurrentRow.Cells[9].Value;
+                diaLembrete.Item3 = (bool)dataGridLembrete.CurrentRow.Cells[10].Value;
+                diaLembrete.Item4 = (bool)dataGridLembrete.CurrentRow.Cells[11].Value;
+                diaLembrete.Item5 = (bool)dataGridLembrete.CurrentRow.Cells[12].Value;
+                diaLembrete.Item6 = (bool)dataGridLembrete.CurrentRow.Cells[13].Value;
+                diaLembrete.Item7 = (bool)dataGridLembrete.CurrentRow.Cells[14].Value;
+                aux.DiaLembrete = diaLembrete;
+                aux.TempoPara = (int)dataGridLembrete.CurrentRow.Cells[15].Value;
+                aux.DatePara = Convert.ToDateTime(dataGridLembrete.CurrentRow.Cells[16].Value);
+
+
+                //       MessageBox.Show($"{aux.GetType()}");
+                FormCompromisso FormComp = new FormCompromisso(aux);
+                FormComp.StartPosition = FormStartPosition.CenterScreen;
+                FormComp.EventoVisible(false);
+                FormComp.TarefaVisible(false);
+                FormComp.ShowDialog();
+                Update(aux);
+                Opacity = 100;
+            }
+        }
+
+        private void DataGridEvento_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (DataGridEvento.SelectedRows.Count != 0)
+            {
+                Opacity = 0;
+                dynamic aux = new Evento(DataGridEvento.CurrentRow.Cells[2].Value.ToString(), DataGridEvento.CurrentRow.Cells[3].Value.ToString(), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[4].Value), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[5].Value), DataGridEvento.CurrentRow.Cells[6].Value.ToString(), null);
+                aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
+                aux.Compromisso_id = (int)DataGridEvento.CurrentRow.Cells[1].Value;
+
+                //       MessageBox.Show($"{aux.GetType()}");
+                FormCompromisso FormComp = new FormCompromisso(aux);
+                FormComp.StartPosition = FormStartPosition.CenterScreen;
+                FormComp.TarefaVisible(false);
+                FormComp.LembreteVisible(false);
+                FormComp.ShowDialog();
+                Update(aux);
+                Opacity = 100;
+            }
+        }
         private void dataGridTarefa_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
         {
             if (e.RowIndex != dataGridTarefa.NewRowIndex)
             {
                 if (e.Value != null)
                 {
-                    if (e.ColumnIndex == 5)
+                    if (e.ColumnIndex == 6)
                     {
                         e.Value = (EnumPrioridade)char.Parse(e.Value.ToString());
                     }
@@ -407,8 +479,250 @@ namespace agenda
         private void DataGridEvento_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             Evento aux = new();
+            dataGridTarefa.ClearSelection();
+            dataGridLembrete.ClearSelection();
+
+
 
             UpdateNoti(aux);
+        }
+
+        private void dataGridTarefa_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            dataGridTarefa.ClearSelection();
+        }
+
+        private void dataGridTarefa_MouseDown(object sender, MouseEventArgs e)
+        {
+            DataGridView.HitTestInfo hit = dataGridTarefa.HitTest(e.X, e.Y);
+            if (hit.Type != DataGridViewHitTestType.Cell)
+                dataGridTarefa.ClearSelection();
+            DataGridNoti.DataSource = null;
+        }
+
+        private void dataGridTarefa_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            Tarefa aux = new();
+            dataGridLembrete.ClearSelection();
+            DataGridEvento.ClearSelection();
+            UpdateNoti(aux);
+        }
+
+
+        private void dataGridLembrete_SelectionChanged(object sender, EventArgs e)
+        {
+
+            var x = dataGridLembrete.CurrentRow.Index;
+
+            if ((int)dataGridLembrete.CurrentRow.Cells[15].Value != 0)
+            {
+                dataGridLembrete.Columns[15].Visible = true;
+            }
+            else if (dataGridLembrete.CurrentRow.Cells[16].Value != null)
+            {
+                dataGridLembrete.Columns[16].Visible = true;
+                dataGridLembrete.Columns[15].Visible = false;
+            }
+
+
+            if (char.Parse(dataGridLembrete.CurrentRow.Cells[7].Value.ToString()) == 'd')
+            {
+                for (int i = 8; i < 15; i++)
+                {
+                    dataGridLembrete.Columns[i].Visible = true;
+                }
+
+            }
+            else
+            {
+
+                for (int i = 8; i < 15; i++)
+                {
+                    dataGridLembrete.Columns[i].Visible = false;
+                }
+            }
+
+            if (dataGridLembrete.SelectedRows.Count > 0)
+            {
+                for (int i = 0; i < dataGridLembrete.RowCount; i++)
+                {
+                    if (i != x)
+                    {
+                        dataGridLembrete.Rows[i].Visible = false;
+                    }
+                }
+            }
+            else
+            {
+                for (int i = 0; i < dataGridLembrete.RowCount; i++)
+                {
+                    dataGridLembrete.Rows[i].Visible = true;
+                }
+                for (int i = 8; i < 17; i++)
+                {
+                    dataGridLembrete.Columns[i].Visible = false;
+                }
+            }
+            Lembrete aux = new();
+            UpdateNoti(aux);
+            dataGridTarefa.ClearSelection();
+            DataGridEvento.ClearSelection();
+
+
+        }
+        
+        private void dataGridLembrete_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            dataGridLembrete.ClearSelection();
+
+
+            dataGridLembrete.Refresh();
+
+
+        }
+
+        private void dataGridLembrete_MouseDown(object sender, MouseEventArgs e)
+        {
+            DataGridView.HitTestInfo hit = dataGridLembrete.HitTest(e.X, e.Y);
+            if (hit.Type != DataGridViewHitTestType.Cell)
+                dataGridLembrete.ClearSelection();
+            DataGridNoti.DataSource = null;
+        }
+
+        private void dataGridLembrete_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex != dataGridLembrete.NewRowIndex)
+            {
+                if (e.Value != null)
+                {
+                    if (e.ColumnIndex == 7)
+                    {
+                        e.Value = (EnumTipoLembrete)char.Parse(e.Value.ToString());
+                    }
+                }
+            }
+        }
+
+        private void buttonEditarEvento_Click(object sender, EventArgs e)
+        {
+            if (DataGridEvento.SelectedRows.Count != 0)
+            {
+                Opacity = 0;
+                dynamic aux = new Evento(DataGridEvento.CurrentRow.Cells[2].Value.ToString(), DataGridEvento.CurrentRow.Cells[3].Value.ToString(), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[4].Value), Convert.ToDateTime(DataGridEvento.CurrentRow.Cells[5].Value), DataGridEvento.CurrentRow.Cells[6].Value.ToString(), null);
+                aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
+                aux.Compromisso_id = (int)DataGridEvento.CurrentRow.Cells[1].Value;
+
+                //       MessageBox.Show($"{aux.GetType()}");
+                FormCompromisso FormComp = new FormCompromisso(aux);
+                FormComp.StartPosition = FormStartPosition.CenterScreen;
+                FormComp.TarefaVisible(false);
+                FormComp.LembreteVisible(false);
+                FormComp.ShowDialog();
+                Update(aux);
+                Opacity = 100;
+            }
+        }
+
+        private void buttonExcluirEvento_Click(object sender, EventArgs e)
+        {
+            if (dataGridTarefa.SelectedRows.Count != 0)
+            {
+                EventoDAO eventoDAO = new();
+                dynamic aux = new Evento();
+                aux.Id = (int)DataGridEvento.CurrentRow.Cells[0].Value;
+                aux.Compromisso_id = (int)DataGridEvento.CurrentRow.Cells[1].Value;
+                //aux.Convidados.Add(textBoxConvidado.Text);
+                eventoDAO.ExcluirEvento(Program.providerName, Program.connectionStr, aux);
+                MessageBox.Show($"Dados excluidos com sucesso!", $"ID: {aux.Id}");
+                Update(aux);
+            }
+        }
+
+        private void buttonEditarTarefa_Click(object sender, EventArgs e)
+        {
+            if (dataGridTarefa.SelectedRows.Count != 0)
+            {
+                Opacity = 0;
+                dynamic aux = new Tarefa(dataGridTarefa.CurrentRow.Cells[2].Value.ToString(), dataGridTarefa.CurrentRow.Cells[3].Value.ToString(), Convert.ToDateTime(dataGridTarefa.CurrentRow.Cells[4].Value), Convert.ToDateTime(dataGridTarefa.CurrentRow.Cells[5].Value), char.Parse(dataGridTarefa.CurrentRow.Cells[6].Value.ToString()), null);
+                aux.Id = (int)dataGridTarefa.CurrentRow.Cells[0].Value;
+                aux.Compromisso_id = (int)dataGridTarefa.CurrentRow.Cells[1].Value;
+
+                //       MessageBox.Show($"{aux.GetType()}");
+                FormCompromisso FormComp = new FormCompromisso(aux);
+                FormComp.StartPosition = FormStartPosition.CenterScreen;
+                FormComp.EventoVisible(false);
+                FormComp.LembreteVisible(false);
+                FormComp.ShowDialog();
+                Update(aux);
+                Opacity = 100;
+            }
+        }
+
+        private void buttonExcluirTarefa_Click(object sender, EventArgs e)
+        {
+            if (dataGridTarefa.SelectedRows.Count != 0)
+            {
+                // cria uma instancia da model
+                TarefaDAO DAO = new();
+                dynamic aux = new Tarefa();
+                aux.Id = (int)dataGridTarefa.CurrentRow.Cells[0].Value;
+                aux.Compromisso_id = (int)dataGridTarefa.CurrentRow.Cells[1].Value;
+                // chama o método da camada model para excluir
+                DAO.ExcluirTarefa(Program.providerName, Program.connectionStr, aux);
+
+                MessageBox.Show($"Dados excluidos com sucesso!", $"ID: {aux.Id}");
+                Update(aux);
+            }
+        }
+
+        private void buttonEditarLembrete_Click(object sender, EventArgs e)
+        {
+            if (dataGridLembrete.SelectedRows.Count != 0)
+            {
+
+                ValueTuple<bool, bool, bool, bool, bool, bool, bool> diaLembrete = (false, false, false, false, false, false, false);
+                Opacity = 0;
+                Lembrete aux = new Lembrete(dataGridLembrete.CurrentRow.Cells[2].Value.ToString(), dataGridLembrete.CurrentRow.Cells[3].Value.ToString(), Convert.ToDateTime(dataGridLembrete.CurrentRow.Cells[4].Value), Convert.ToDateTime(dataGridLembrete.CurrentRow.Cells[5].Value), Convert.ToDateTime(dataGridLembrete.CurrentRow.Cells[6].Value), char.Parse(dataGridLembrete.CurrentRow.Cells[7].Value.ToString()));
+                aux.Id = (int)dataGridLembrete.CurrentRow.Cells[0].Value;
+                aux.Compromisso_id = (int)dataGridLembrete.CurrentRow.Cells[1].Value;
+                diaLembrete.Item1 = (bool)dataGridLembrete.CurrentRow.Cells[8].Value;
+                diaLembrete.Item2 = (bool)dataGridLembrete.CurrentRow.Cells[9].Value;
+                diaLembrete.Item3 = (bool)dataGridLembrete.CurrentRow.Cells[10].Value;
+                diaLembrete.Item4 = (bool)dataGridLembrete.CurrentRow.Cells[11].Value;
+                diaLembrete.Item5 = (bool)dataGridLembrete.CurrentRow.Cells[12].Value;
+                diaLembrete.Item6 = (bool)dataGridLembrete.CurrentRow.Cells[13].Value;
+                diaLembrete.Item7 = (bool)dataGridLembrete.CurrentRow.Cells[14].Value;
+                aux.DiaLembrete = diaLembrete;
+                aux.TempoPara = (int)dataGridLembrete.CurrentRow.Cells[15].Value;
+                aux.DatePara = Convert.ToDateTime(dataGridLembrete.CurrentRow.Cells[16].Value);
+
+
+                //       MessageBox.Show($"{aux.GetType()}");
+                FormCompromisso FormComp = new FormCompromisso(aux);
+                FormComp.StartPosition = FormStartPosition.CenterScreen;
+                FormComp.EventoVisible(false);
+                FormComp.TarefaVisible(false);
+                FormComp.ShowDialog();
+                Update(aux);
+                Opacity = 100;
+
+            }
+        }
+
+        private void buttonExcluirLembrete_Click(object sender, EventArgs e)
+        {
+            if (dataGridTarefa.SelectedRows.Count != 0)
+            {
+                LembreteDAO DAO = new();
+                dynamic aux = new Lembrete();
+                aux.Id = (int)dataGridLembrete.CurrentRow.Cells[0].Value;
+                aux.Compromisso_id = (int)dataGridLembrete.CurrentRow.Cells[1].Value;
+                // chama o método da camada model para excluir
+                DAO.ExcluirLembrete(Program.providerName, Program.connectionStr, aux);
+
+                MessageBox.Show($"Dados excluidos com sucesso!", $"ID: {aux.Id}");
+                Update(aux);
+            }
         }
     }
 

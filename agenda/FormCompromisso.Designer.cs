@@ -91,11 +91,13 @@ namespace agenda
             this.labelLembreteACada = new System.Windows.Forms.Label();
             this.dateTimePickerLemb = new System.Windows.Forms.DateTimePicker();
             this.labelTimeLembrete = new System.Windows.Forms.Label();
+            this.numericUpDownId = new System.Windows.Forms.NumericUpDown();
             ((System.ComponentModel.ISupportInitialize)(this.TempoNotificacao)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownOcorrenciasLembrete)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewNotificacoes)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridConvidado)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownId)).BeginInit();
             this.SuspendLayout();
             // 
             // comboBoxTipo
@@ -797,19 +799,26 @@ namespace agenda
             this.labelTimeLembrete.TabIndex = 94;
             this.labelTimeLembrete.Text = "Tempo de inicio";
             // 
+            // numericUpDownId
+            // 
+            this.numericUpDownId.Location = new System.Drawing.Point(286, 296);
+            this.numericUpDownId.Name = "numericUpDownId";
+            this.numericUpDownId.Size = new System.Drawing.Size(120, 23);
+            this.numericUpDownId.TabIndex = 95;
+            // 
             // FormCompromisso
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.SlateGray;
             this.ClientSize = new System.Drawing.Size(692, 597);
+            this.Controls.Add(this.numericUpDownId);
             this.Controls.Add(this.labelTimeLembrete);
             this.Controls.Add(this.dateTimePickerLemb);
             this.Controls.Add(this.labelLembreteACada);
             this.Controls.Add(this.labelNotiId);
             this.Controls.Add(this.textBoxIdNoti);
             this.Controls.Add(this.dataGridViewNotificacoes);
-            this.Controls.Add(this.numericUpDownOcorrenciasLembrete);
             this.Controls.Add(this.dateTimePickerLembrete);
             this.Controls.Add(this.CheckBoxData);
             this.Controls.Add(this.checkBoxOcorrencias);
@@ -857,9 +866,10 @@ namespace agenda
             this.Controls.Add(this.dataGridConvidado);
             this.Controls.Add(this.comboBoxPrioridade);
             this.Controls.Add(this.labelEmailDoConvidado);
-            this.Controls.Add(this.textBox2);
             this.Controls.Add(this.labelLembretRepitir);
             this.Controls.Add(this.labelPrioridade);
+            this.Controls.Add(this.numericUpDownOcorrenciasLembrete);
+            this.Controls.Add(this.textBox2);
             this.Name = "FormCompromisso";
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "FormCompromisso";
@@ -868,6 +878,7 @@ namespace agenda
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownOcorrenciasLembrete)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridViewNotificacoes)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridConvidado)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownId)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -937,5 +948,6 @@ namespace agenda
         private System.Windows.Forms.Label labelLembreteACada;
         private System.Windows.Forms.DateTimePicker dateTimePickerLemb;
         private System.Windows.Forms.Label labelTimeLembrete;
+        private System.Windows.Forms.NumericUpDown numericUpDownId;
     }
 }
