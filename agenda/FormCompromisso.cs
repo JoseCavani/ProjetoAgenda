@@ -87,7 +87,9 @@ namespace agenda
 
                 NotificacaoDAO dao = new();
                 //chama o método para buscar todos os dados da nossa camada model
+
                 DataTable linhas = dao.SelectNotificacoes(Program.providerName, Program.connectionStr, aux.Compromisso_id);
+
 
                 // seta o datasouce do dataGridView com os dados retornados
                 dataGridViewNotificacoes.Columns.Clear();
@@ -264,7 +266,9 @@ namespace agenda
             Notificacao auxNotificacao = new Notificacao((byte)TempoNotificacao.Value, (char)(EnumUnidade)Enum.Parse(typeof(EnumUnidade),
            comboBoxUnidade.Text), (char)(EnumTipo)Enum.Parse(typeof(EnumTipo), comboBoxTipo.Text));
             NotificacaoDAO dao = new();
+
             dao.InserirNotificacao(Program.providerName, Program.connectionStr, auxNotificacao, aux.Compromisso_id);
+
             MessageBox.Show("Notificação cadastrada com sucesso!\nSe estiver tudo OK, feche a tela!");
             UpdateNotificaçã();
 
@@ -436,7 +440,9 @@ namespace agenda
                     MessageBox.Show($"Dados cadastrado com sucesso!");
 
 
+
                    /*agenda.Add(new Tarefa(textBoxTitulo.Text, TextBoxDescricao.Text,
+
                     Boxdatainicio.Value, DateTime.ParseExact(BoxDataFim.Text, "dd/MM/yyyy H:mm", CultureInfo.InvariantCulture),
                     (char)(EnumPrioridade)Enum.Parse(typeof(EnumPrioridade), comboBoxPrioridade.Text)));*/
                 }
@@ -687,6 +693,24 @@ namespace agenda
                 diasVisible(true);
             }
             else { diasVisible(false); }
+        }
+
+        private void dataGridViewNotificacoes_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex != dataGridViewNotificacoes.NewRowIndex)
+            {
+                if (e.Value != null)
+                {
+                    if (e.ColumnIndex == 3)
+                    {
+                        e.Value = (EnumTipo)char.Parse(e.Value.ToString());
+                    }
+                    if (e.ColumnIndex == 2)
+                    {
+                        e.Value = (EnumUnidade)char.Parse(e.Value.ToString());
+                    }
+                }
+            }
         }
 
         private void dataGridViewNotificacoes_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)

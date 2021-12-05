@@ -51,9 +51,7 @@ namespace agenda
 
             this.agenda = agenda;
             InitializeComponent();
-           
-            //   var L1 = new Lembrete( "L1", "Lembrete 1", new DateTime(2021, 10, 20, 22, 45, 0), new DateTime(2021, 10, 20, 23, 30, 0), 5,'A',new ValueTuple<bool, bool, bool, bool, bool, bool, bool>());
-            // agenda.Add(L1);
+            
             Update(new Evento());
             Update(new Tarefa());
             Update(new Lembrete());
